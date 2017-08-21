@@ -1,1 +1,1 @@
-depends 'cassandra'
+depends 'Cassandra'
