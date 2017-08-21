@@ -162,13 +162,8 @@ USING_G1=$?
 # times. If in doubt, and if you do not particularly want to tweak, go with
 # 100 MB per physical CPU core.
 
-<% if node['cassandra']['max_heap_size'] && node['cassandra']['heap_new_size'] %>
-MAX_HEAP_SIZE="<%= node['cassandra']['max_heap_size'] %>"
-HEAP_NEWSIZE="<%= node['cassandra']['heap_new_size'] %>"
-<% else %>
 #MAX_HEAP_SIZE="4G"
 #HEAP_NEWSIZE="800M"
-<% end %>
 
 # Set this to control the amount of arenas per-thread in glibc
 #MALLOC_ARENA_MAX=4
@@ -213,19 +208,14 @@ fi
 # provides hints to the JIT compiler
 JVM_OPTS="$JVM_OPTS -XX:CompileCommandFile=$CASSANDRA_CONF/hotspot_compiler"
 
-<% if node['cassandra']['jamm']['version'] -%>
 # add the jamm javaagent
 if [ "$JVM_VENDOR" != "OpenJDK" -o "$JVM_VERSION" \> "1.6.0" ] \
       || [ "$JVM_VERSION" = "1.6.0" -a "$JVM_PATCH_VERSION" -ge 23 ]
 then
-  JVM_OPTS="$JVM_OPTS -javaagent:$CASSANDRA_HOME/lib/jamm-<%= node['cassandra']['jamm']['version'] -%>.jar"
+  JVM_OPTS="$JVM_OPTS -javaagent:$CASSANDRA_HOME/lib/jamm-0.3.1.jar"
 fi
-<% end -%>
 
 # set jvm HeapDumpPath with CASSANDRA_HEAPDUMP_DIR
-<% if node['cassandra']['heap_dump_dir'] -%>
-CASSANDRA_HEAPDUMP_DIR=<%= node['cassandra']['heap_dump_dir'] %>
-<% end -%>
 if [ "x$CASSANDRA_HEAPDUMP_DIR" != "x" ]; then
     JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=$CASSANDRA_HEAPDUMP_DIR/cassandra-`date +%s`-pid$$.hprof"
 fi
@@ -241,11 +231,9 @@ fi
 # To enable remote JMX connections, uncomment lines below
 # with authentication and/or ssl enabled. See https://wiki.apache.org/cassandra/JmxSecurity 
 #
-<% if node['cassandra']['local_jmx'] %>
 if [ "x$LOCAL_JMX" = "x" ]; then
     LOCAL_JMX=yes
 fi
-<% end %>
 
 # Specifies the default port over which Cassandra will be available for
 # JMX connections.
@@ -254,7 +242,7 @@ fi
 # Specifies the default port over which Cassandra will be available for
 # JMX connections.
 # For security reasons, you should not expose this port to the internet.  Firewall it if needed.
-JMX_PORT="<%= node['cassandra']['jmx_port'] %>"
+JMX_PORT="7199"
 
 if [ "$LOCAL_JMX" = "yes" ]; then
   JVM_OPTS="$JVM_OPTS -Dcassandra.jmx.local.port=$JMX_PORT"
@@ -263,9 +251,9 @@ else
   # if ssl is enabled the same port cannot be used for both jmx and rmi so either
   # pick another value for this property or comment out to use a random port (though see CASSANDRA-7087 for origins)
   JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT"
-  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port=<%= node['cassandra']['jmx_remote_rmi_port'] %>"
+  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT"
   JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=false"
-  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=<%= node['cassandra']['jmx_remote_authenticate'] %>"
+  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
   JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=$CASSANDRA_CONF/jmxremote.password"
   JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.access.file=$CASSANDRA_CONF/jmxremote.access"
 
@@ -294,52 +282,23 @@ fi
 JVM_OPTS="$JVM_OPTS -Djava.library.path=$CASSANDRA_HOME/lib/sigar-bin"
 
 
-<% if node['cassandra']['setup_priam'] -%>
 # add the priam cass extensions javaagent
-  JVM_OPTS="$JVM_OPTS -javaagent:$CASSANDRA_HOME/lib/<%= node['cassandra']['priam']['jar_name'] -%>"
-<% end -%>
+  JVM_OPTS="$JVM_OPTS -javaagent:$CASSANDRA_HOME/lib/priam-cass-extensions-2.2.0.jar"
 
 # jmx: metrics and administration interface
 #
 # add this if you're having trouble connecting:
-<% if node['cassandra']['jmx_server_hostname'] %>
-JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<%= node['cassandra']['jmx_server_hostname'] %>"
-<% else %>
 # JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"
-<% end %>
 
 # support for metrics reporter:
-<% if node['cassandra']['metrics_reporter']['enabled'] %>
 JVM_OPTS="$JVM_OPTS -Dcassandra.metricsReporterConfigFile=cassandra-metrics.yaml"
-<% end %>
 
-<% if node['cassandra']['skip_jna'] %>
-JVM_OPTS="$JVM_OPTS -Dcassandra.boot_without_jna=true"
-<% end %>
 
 # see https://issues.apache.org/jira/browse/CASSANDRA-6541
 JVM_OPTS="$JVM_OPTS -XX:+CMSClassUnloadingEnabled"
 
-<%if node['cassandra']['tmp_dir'] %>
-JVM_OPTS="$JVM_OPTS -Djna.tmpdir=<%= node['cassandra']['tmp_dir'] %>"
-JVM_OPTS="$JVM_OPTS -Djava.io.tmpdir=<%= node['cassandra']['tmp_dir'] %>"
-<% end %>
 
-<% if node['cassandra']['jvm']['agentpath'] %>
-JVM_OPTS="$JVM_OPTS -agentpath:<%= node['cassandra']['jvm']['agentpath'] %>"
-<% end %>
 
-<% if node['cassandra']['jvm']['misc_java_agents'] %>
-<% node['cassandra']['jvm']['misc_java_agents'].each do |agent| %>
-JVM_OPTS="$JVM_OPTS -javaagent:<%= agent.to_s -%>"
-<% end %>
-<% end %>
-
-<% if node['cassandra']['jvm']['misc_jvm_options'] %>
-<% node['cassandra']['jvm']['misc_jvm_options'].each do |option| %>
-JVM_OPTS="$JVM_OPTS -D<%= option.to_s -%>"
-<% end %>
-<% end %>
 
 JVM_OPTS="$JVM_OPTS $MX4J_ADDRESS"
 JVM_OPTS="$JVM_OPTS $MX4J_PORT"

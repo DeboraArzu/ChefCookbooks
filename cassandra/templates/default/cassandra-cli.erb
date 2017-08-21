@@ -1,5 +1,8 @@
 #!/bin/sh
-
+#
+# This file is managed by Chef.
+# Do NOT modify this file directly.
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -16,7 +19,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-for j in <%= node.cassandra.lib_dir %>/*.jar; do
+for j in <%= node['cassandra']['lib_dir'] %>/*.jar; do
     [ "x$CLASSPATH" = "x" ] && CLASSPATH=$j || CLASSPATH=$CLASSPATH:$j
 done
 for j in /usr/share/$NAME/*.jar; do
