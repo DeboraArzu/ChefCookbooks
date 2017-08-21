@@ -1,9 +1,15 @@
-default['kibana']['download_url'] = 'https://download.elastic.co/kibana/kibana/kibana-4.5.0-linux-x64.tar.gz'
-default['kibana']['checksum'] = 'fa3f675febb34c0f676f8a64537967959eb95d2f5a81bc6da17aa5c98b9c76ef'
-default['kibana']['version'] = '4.5.0'
-
-default['kibana']['user'] = 'kibana'
-default['kibana']['group'] = 'kibana'
-default['kibana']['dir'] = '/opt'
-
-default['kibana']['path']['logs'] = '/var/log/kibana'
+default['kibana']['repo'] = "https://github.com/elasticsearch/kibana"
+default['kibana']['branch'] = "master"
+default['kibana']['git']['checkout'] = false
+default['kibana']['webserver'] = "nginx"
+default['kibana']['installdir'] = "/opt/kibana"
+default['kibana']['es_server'] = "127.0.0.1"
+default['kibana']['es_port'] = "9200"
+default['kibana']['es_role'] = "elasticsearch_server"
+default['kibana']['user'] = ''
+default['kibana']['config_template'] = 'config.js.erb'
+default['kibana']['config_cookbook'] = 'kibana'
+default['kibana']['webserver_hostname'] = node.name
+default['kibana']['webserver_aliases'] = [node.ipaddress]
+default['kibana']['webserver_listen'] = node.ipaddress
+default['kibana']['webserver_port'] = 80

@@ -1,7 +1,9 @@
-source 'https://supermarket.chef.io'
-
 metadata
+cookbook 'yum'
+cookbook 'apt'
+cookbook 'nginx'
+cookbook 'apache2'
+cookbook 'git'
+cookbook 'java'
 
-group :integration do
-  cookbook 'simple-kibana-test', path: 'test/fixtures/cookbooks/simple-kibana-test'
-end
+cookbook 'elasticsearch', git: 'git://github.com/elasticsearch/cookbook-elasticsearch.git'

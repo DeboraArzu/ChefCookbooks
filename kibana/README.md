@@ -1,72 +1,149 @@
-# Description
+kibana Cookbook
+===============
+A stand-alone cookbook for Kibana3
 
-This cookbook installs kibana 4.5.x only.
-It doesn't install or depends on java, apache, nginx, etc...
+Requirements
+------------
+- apt
+- yum
+- apache2
+- nginx
+- git
 
-Since kibana 4.5.x requires elasticsearch >= 2.3.0 you will have to install that version or more recent.
 
-# Usage
+Attributes
+----------
+As with most cookbooks I write, this one is hopefully flexible enough to be wrapped by allowing you to override as much as possible
 
-Override both `node['kibana']['download_url']`, `node['kibana']['checksum']`, `node['kibana']['version']`.
+#### kibana::default
 
-# Custom init service
+- `node['kibana']['repo']` - The git repo to use for Kibana3
+- `node['kibana']['branch']` - The sha or branch name to use
+- `node['kibana']['webserver']` - Which webserver to use: apache, nginx or '' 
+- `node['kibana']['installdir']` - The directory to checkout into. A `current` symlink will be created in this directory as well.
+- `node['kibana']['es_server']` - The ipaddress or hostname of your elasticsearch server
+- `node['kibana']['es_port']` - The port of your elasticsearch server's http interface
+- `node['kibana']['es_role']` - **unused** eventually for wiring up discovery of your elasticsearch server
+- `node['kibana']['user']` - The user who will own the files from the git checkout. (default: the web server user)
+- `node['kibana']['config_template']` - The template to use for kibana's `config.js`
+- `node['kibana']['config_cookbook']` - The cookbook that contains said config template
+- `node['kibana']['webserver_hostname']` - The primary vhost the web server will use for kibana
+- `node['kibana']['webserver_aliases']` - Array of any secondary hostnames that are valid vhosts
+- `node['kibana']['webserver_listen']` - The ip address the web server will listen on
+- `node['kibana']['webserver_port']` - The port the webserver will listen on
 
-This cookbook is designed to be wrapped by yours project cookbook.
-In this use-case you don't need to include simple-kibana::default recipe.
+#### kibana::nginx
 
-Do something like this in yours default recipe:
+- `node['kibana']['nginx']['template']` - The template file to use for the nginx site configuration
+- `node['kibana']['nginx']['template_cookbook']` - The cookbook containing said template
+- `node['kibana']['nginx']['enable_default_site']` - Should we disable the nginx default site (default: true)
 
-```ruby
-include_recipe 'simple-kibana::install'
-include_recipe 'simple-kibana::configure'
-include_recipe 'mywrapper-kibana::service_upstart' # I want to use upstart
-...
+#### kibana::apache
+
+- `node['kibana']['apache']['template']` - The template file to use for the apache site configuration
+- `node['kibana']['apache']['template_cookbook']` - The cookbook containing said template
+- `node['kibana']['apache']['enable_default_site']` - Should we disable the apache default site (default: true)
+
+Usage
+-----
+#### kibana::default
+The default recipe will:
+
+- install kibana3 from `master` into `/opt/kibana/master` and create a symlink called `current` in the same directory to `master`
+- install `nginx` and serve the kibana application
+
+If you wish to swap `apache` for `nginx`, simply set `node['kibana']['webserver']` to `apache` in a role/environment/node somewhere.
+
+If you don't want this cookbook to handle the webserver config simply set `node['kibana']['webserver']` to `''` in a role/environment/node somewhere.
+Please note that in this case you have to set `node['kibana']['user']`.
+
+Both cookbooks, by default, will configure the appropriate proxy to your ElasticSearch server such that you don't have to expose it to the world.
+
+**NOTE**
+There is **NO** security enabled by default on any of the content being served.
+If you would like to modify the `nginx` or `apache` parameters, you should:
+
+- create your own cookbook i.e. `my-kibana`
+- copy the template for the webserver you wish to use to your cookbook
+- modify the template as you see fit (add auth, setup ssl)
+- use the appropriate webserver template attributes to point to your cookbook and template
+
+Testing
+-------
+#### Vagrant
+
+Requires Vagrant >= 1.2 with the following plugins :
+
+* vagrant-berkshef
+* vagrant-omnibus
+
+```
+$ vagrant up ubuntu1204
 ```
 
-# Requirements
+If you get the following error then run `vagrant provision ubuntu1204`.  For some reason on my box it's occasionally failing to launch the shell provisioner.
 
-## Platform:
+```
+[ubuntu1204] Running: inline script
+stdin: is not a tty
+The following SSH command responded with a non-zero exit status.
+Vagrant assumes that this means the command failed!
 
-* debian
-* centos
+chmod +x /tmp/vagrant-shell && /tmp/vagrant-shell
+```
 
-## Cookbooks:
+#### Vagabond
 
-* ark
-* runit
+This should be a quicker test suite than Vagrant.   However I'm currently hitting 
+this bug : https://github.com/chrisroberts/vagabond/issues/40.   In theory the following should work
 
-# Attributes
+```
+vagabond up ubuntu1204
+```
 
-* `node['kibana']['config']['port']` -  Defaults to `5601`.
-* `node['kibana']['config']['host']` -  Defaults to `0.0.0.0`.
-* `node['kibana']['config']['elasticsearch.url']` -  Defaults to `http://localhost:9200`.
-* `node['kibana']['config']['elasticsearch.preserveHost']` -  Defaults to `true`.
-* `node['kibana']['config']['kibana.index']` -  Defaults to `.kibana`.
-* `node['kibana']['config']['kibana.defaultAppId']` -  Defaults to `discover`.
-* `node['kibana']['config']['elasticsearch.ssl.verify']` -  Defaults to `true`.
-* `node['kibana']['config']['elasticsearch.requestTimeout']` -  Defaults to `300000`.
-* `node['kibana']['config']['elasticsearch.shardTimeout']` -  Defaults to `0`.
-* `node['kibana']['config']['elasticsearch.startupTimeout']` -  Defaults to `5000`.
-* `node['kibana']['download_url']` -  Defaults to `https://download.elastic.co/kibana/kibana/kibana-4.5.0-linux-x64.tar.gz`.
-* `node['kibana']['checksum']` -  Defaults to `fa3f675febb34c0f676f8a64537967959eb95d2f5a81bc6da17aa5c98b9c76ef`.
-* `node['kibana']['version']` -  Defaults to `4.5.0`.
-* `node['kibana']['user']` -  Defaults to `kibana`.
-* `node['kibana']['group']` -  Defaults to `kibana`.
-* `node['kibana']['dir']` -  Defaults to `/opt`.
-* `node['kibana']['path']['logs']` -  Defaults to `/var/log/kibana`.
 
-# Recipes
+#### Strainer
 
-* simple-kibana::configure
-* simple-kibana::default
-* simple-kibana::install
-* simple-kibana::service_runit
-* simple-kibana::user
+```
+$ bundle install
+$ bundle exec berks install
+$ bundle exec strainer test
+```
 
-# License and Maintainer
+Contributing
+------------
+- Fork the repository on Github
+- Create a named feature branch (like `add_component_x`)
+- Write you change
+- Write tests for your change (if applicable)
+- Run the tests, ensuring they all pass
+-- `bundle exec strainer test`
+- Submit a Pull Request using Github
 
-Maintainer:: Yauhen Artsiukhou (<jsirex@gmail.com>)
-Source:: https://github.com/jsirex/simple-kibana-cookbook
-Issues:: https://github.com/jsirex/simple-kibana-cookbook/issues
+License and Authors
+-------------------
+Primary author:
 
-License:: Apache 2.0
+- John E. Vincent <lusis.org+github.com@gmail.com>
+
+Contributors:
+
+- Jeff Hubbard (@lord2800)
+- @mouadino
+- Ben P (@benwtr)
+- Chris Ferry (@chrisferry)
+- Ian Neubert (@ianneub)
+- kellam (@klamontagne)
+- Paul Czarkowski (@paulczar)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

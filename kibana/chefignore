@@ -1,7 +1,3 @@
-# Put files/directories that should be ignored in this file when uploading
-# or sharing to the community site.
-# Lines that start with '# ' are comments.
-
 # OS generated files #
 ######################
 .DS_Store
@@ -69,10 +65,10 @@ Procfile
 
 # Berkshelf #
 #############
+Berksfile
+Berksfile.lock
 cookbooks/*
 tmp
-.berkshelf/
-Berkshelf.lock
 
 # Cookbooks #
 #############
@@ -94,19 +90,3 @@ Vagrantfile
 # Travis #
 ##########
 .travis.yml
-
-# Kitchen #
-###########
-.kitchen/
-.kitchen*.yml
-
-# Reports #
-###########
-reports/
-
-# Yardocs #
-###########
-.yardoc/
-
-# Gemfile
-Gemfile.lock

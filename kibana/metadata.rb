@@ -1,16 +1,14 @@
-name             'simple-kibana'
-maintainer       'debora'
-maintainer_email 'example@gmail.com'
+name             'kibana'
+maintainer       'John E. Vincent'
+maintainer_email 'lusis.org+github.com@gmail.com'
 license          'Apache 2.0'
-description      'Installs Kibana ~> 4.5'
-long_description 'Installs Kibana ~> 4.5. No less, no more'
-issues_url       'https://github.com/jsirex/simple-kibana-cookbook/issues' if respond_to?(:issues_url)
-source_url       'https://github.com/jsirex/simple-kibana-cookbook' if respond_to?(:source_url)
+description      'Installs/Configures kibana'
+long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
+version          '1.1.5'
 
-version          '1.0.0'
+%w{git nginx apache2}.each do |cb|
+  depends cb
+end
 
-depends 'ark'
-depends 'runit'
-
-supports 'debian'
-supports 'centos'
+supports "ubuntu"
+supports "debian"
