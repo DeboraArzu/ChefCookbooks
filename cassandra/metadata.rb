@@ -15,7 +15,6 @@ depends 'ark'
 depends 'systemd'
 depends 'chef_handler', '~> 3.0.2'
 
-chef_version '>= 12.9.1'
 
 %w[ubuntu centos redhat fedora amazon].each do |os|
   supports os

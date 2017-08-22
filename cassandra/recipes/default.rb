@@ -23,7 +23,7 @@ raise "attribute node['cassandra']['config']['cluster_name'] not defined" unless
 node.default['cassandra']['seeds'] = discover_seed_nodes
 
 # setup java
-include_recipe 'java_se' if node['cassandra']['install_java']
+include_recipe 'java' if node['cassandra']['install_java']
 
 # install C* via datastax / tarball
 include_recipe "cassandra-dse::#{node['cassandra']['install_method']}"
